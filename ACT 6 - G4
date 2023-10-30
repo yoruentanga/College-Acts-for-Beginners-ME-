@@ -1,0 +1,245 @@
+# 6. La tarjeta de crédito SUCRED, dispone de la información necesaria en las siguientes estructuras de datos:
+#
+#  CLIENTES (N) de tipo registro, el cual contiene: Numero Tarjeta, DNI, Apellido y Nombre del cliente.
+#
+# CLIENTES (N)
+#
+# NT  DNI     A       N
+# 1   16      Cortez  Julia
+# NT  DNI     A       N
+# 2   23      Diaz    Carlos
+# NT  DNI     A       N
+# 3   18      Rojas   Marcia
+#
+#  NEGOCIOS (M) de tipo registro, el cual contiene datos acerca de los distintos negocios que operan con la tarjeta:
+# CUIL, Nombre del Negocio y Dirección
+#
+# NEGOCIOS (M)
+#
+# C   NN      D
+# 23  ARIZU   SALTA 23
+# C   NN      D
+# 20  MARYTE  PERU 15
+# C   NN      D
+# 27  GRITO   ALSINA 30
+# C   NN      D
+# 30  STON    ROCA 20
+#
+#  AUTORIZACIONES (L) de tipo registro, con información de todas las compras autorizadas a los distintos clientes en
+# los diferentes negocios a lo largo del mes en curso: Fecha de la Compra, Número de Tarjeta del Cliente, CUIL del Negocio,
+# Plan de Pagos y Monto de la Compra.
+#
+# AUTORIZACIONES (L)
+#
+#     F       NT  C   P   MC
+# 01/09/2009  1   30  C   600
+#     F       NT  C   P   MC
+# 01/09/2009  3   20  A   450
+#     F       NT  C   P   MC
+# 04/09/2009  1   30  D   2400
+#
+# a) Mostrar el resumen de cuenta de un cliente con el siguiente formato:
+#
+#                         TARJETA SUCRED - RESUMEN DE CUENTA
+#             Número de tarjeta: 1
+#             DNI: 16         Apellido: Cortez            Nombre: Julia
+#                             COMPRAS DEL MES A PAGAR
+#             Fecha         Nombre del Negocio  Plan    Monto de Cuota
+#             01/09/2009        STON             B          100
+#             04/09/2009        STON             D          200
+#                                 Total a Pagar 300
+#
+# Nota: la correspondencia entre el Plan de Cuotas y la Cantidad de cuotas es la siguiente:
+#
+# Plan Cant. Cuotas
+#     A       1
+#     B       3
+#     C       6
+#     D       12
+# En caso de que el DNI ingresado no existiera, se deberá mostrar “Cliente Inexistente”
+#
+# b) Mostrar un informe con el monto total de compras realizadas en los diferentes negocios, con el siguiente formato:
+#
+#                                             PAGO A NEGOCIOS
+#             CUIL    Nombre Negocio      Cantidad Autorizaciones Monto       Total de Compras
+#                 20       MARYTE                     1                               450
+#                 30       STON                        2                              3000
+#                                               Total A Pagar 3450
+import numpy as np
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ Modulos //////////////////////////////////////////////////////////
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Monto de Cuota
+#Des: Retorna la cuota de la compra
+#DE: autorizaciones
+#DS: monto_de_cuota
+
+def monto_de_cuota(autorizaciones,posicion):
+    m = autorizaciones['monto_compra'][posicion]
+    if autorizaciones['plan_de_pago'][posicion] == 'A':
+        b = m
+    elif autorizaciones['plan_de_pago'][posicion] == 'B':
+        b = m / 3
+    elif autorizaciones['plan_de_pago'][posicion] == 'C':
+        b = m / 6
+    else:
+        b = m / 12
+    return b
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Nombre de Negocio
+#Des: Retorna el nombre del negocio
+#DE: negocios, cuil
+#DS: nombre_de_negocio
+
+def nombre_de_negocio(negocios,cuil):
+    dim_m = len(negocios)
+    for i in range(dim_m):
+        if cuil == negocios['cuil'][i]:
+            return negocios['nombre_negocio'][i]
+    return None
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Imprimir datos de compra
+#Des: Imprime los datos de compras del resumen
+#DE: autorizaciones, clientes, posicion
+#DS: -----------------
+
+def Imprimir_datos_compra(autorizaciones,clientes,posicion):
+    print(" Fecha  | Nombre del Negocio | Plan |\tMonto de Cuotas")
+    tarjeta = clientes['numero_tarjeta'][posicion]
+    dim_l = len(autorizaciones)
+    for i in range(dim_l):
+        if tarjeta == autorizaciones['num_tarjeta_cliente'][i]:
+            c = autorizaciones['cuil_negocio'][i]
+            n_negocio = nombre_de_negocio(m,c)
+            m_cuota = monto_de_cuota(l, posicion)
+            print(f"{autorizaciones['fecha_de_compra']['dia'][i]}/{autorizaciones['fecha_de_compra']['mes'][i]}/{autorizaciones['fecha_de_compra']['anio'][i]} \t\t {n_negocio}"f"\t\t \t{autorizaciones['plan_de_pago'][i]}" f"\t\t\t{m_cuota}")
+    print("-" * 52)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Imprime Monto total
+#Des: Imprime el monto total a pagar en el mes
+#DE: r_autorizaciones, r_clientes, posicion
+#DS: -----------------
+
+def Imprimir_monto_total(autorizaciones, clientes, posicion):
+    tarjeta = clientes['numero_tarjeta'][posicion]
+    monto = 0
+    dim_a = len(autorizaciones)
+    for i in range(dim_a):
+        if tarjeta == autorizaciones['num_tarjeta_cliente'][i]:
+            monto += autorizaciones['monto_compra'][i]
+    print(f"\t\t\t Total a pagar: {monto}")
+    return None
+
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Existe Cliente
+#Des: Retorna la posicion del cliente si existe
+#DE: arregloC
+#DS: posicion
+
+def existe_cliente(clientes):
+    print()
+    dni = int(input("Ingrese DNI: "))
+    for i in range(len(clientes)):
+        if dni == clientes['DNI'][i]:
+            return i
+    return -1
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Imprimir Resumen
+#Des: Imprime el resumen de un cliente
+#DE: clientes, arregloC1
+#DS: ---------------------
+
+def imprimir_resumen(arregloc):
+    pos = existe_cliente(n)
+    if pos != -1:
+        print()
+        print("-"*52)
+        print("\t\t Tarjeta SUCRED - RESUMEN DE CUENTA")
+        print("-"*52)
+        print(f"\tN° de Tarjeta: {arregloc['numero_tarjeta'][pos]}")
+        print(f"\tDNI: {arregloc['DNI'][pos]}\t\tApellido: {arregloc['apellido'][pos]}\t Nombre: {arregloc['nombre'][pos]}")
+        print()
+        print("-"*52)
+        print("\t\t\tCompras del Mes a Pagar")
+        print("-"*52)
+        Imprimir_datos_compra(l,n,pos)
+        Imprimir_monto_total(l, n, pos)
+    else:
+        print("\t\t CLIENTE INEXISTENTE")
+    return None
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ Registros //////////////////////////////////////////////////////////
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Registro Fecha
+
+t_fecha = np.dtype(
+    [('dia',int),
+     ('mes',int),
+     ('anio',int)
+    ]
+)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Registro Direccion
+
+r_direccion = np.dtype(
+    [('calle','U10'),
+     ('numeracion',int)
+    ]
+)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\- Registro Clientes
+
+r_clientes = np.dtype(
+    [('numero_tarjeta',int),
+     ('DNI',int),
+     ('apellido','U10'),
+     ('nombre','U10')
+    ]
+)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Registro Negocios
+
+r_negocios = np.dtype(
+    [('cuil',int),
+     ('nombre_negocio','U15'),
+     ('direccion_negocio',r_direccion)
+    ]
+)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Registro Autorizaciones
+
+r_autorizaciones = np.dtype(
+    [('fecha_de_compra',t_fecha),
+     ('num_tarjeta_cliente',int),
+     ('cuil_negocio',int),
+     ('plan_de_pago','U2'),
+     ('monto_compra',float)
+    ]
+)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ - Definicion Arreglos
+
+n = np.array([
+    (1, 16, "Cortez", "Julia"),
+    (2, 23, "Diaz", "Carlos"),
+    (3, 18, "Rojas", "Marcia")
+], dtype=r_clientes)
+
+m = np.array([
+    (23,'ARIZU',('SALTA',23)),
+    (20,'MARYTE',('PERU',15)),
+    (27,'GRITO',('ALSINA',30)),
+    (30,'STON',('ROCA', 20))
+], dtype=r_negocios)
+
+
+l = np.array([
+    ((1,9,2009),1,30,'C',300),
+    ((1,9,2009),2,20,'A',450),
+    ((4,9,2009),3,27,'D',2400)
+], dtype=r_autorizaciones)
+
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ Programa Principal ///////////////////////////////////////////////////
+
+
+imprimir_resumen(n)
